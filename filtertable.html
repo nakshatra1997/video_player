@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTML5 Audio Player</title>
+
+    <style type="text/css">
+      table tr{
+        cursor: pointer;
+      }
+    </style>
+
+
+    <script src="js/jquery.js"></script>
+    <script type="text/javascript">
+    var audio, prog;
+     function searchsong()
+                        {
+                            var input, filter, table, tr, td, i;
+                              input = document.getElementById("myInput");
+                              filter = input.value.toUpperCase();
+                              table = document.getElementById("playlist");
+                              tr = table.getElementsByTagName("tr");
+                              for (i = 0; i < tr.length; i++) {
+                                td = tr[i].getElementsByTagName("td")[0];
+                                if (td) {
+                                  if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                    tr[i].style.display = "";
+                                  } else {
+                                    tr[i].style.display = "none";
+                                  }
+                                }
+                              }
+                            }
+
+     $(document).ready(function()
+                               {    $('#inputdiv').hide();
+                                    $('#playlist').hide();
+                                    $('#audio-info').hide();
+                                    $('#tracker').hide();
+                                    $('#buttons').hide();
+                            });
+    $(document).ready(function()
+                               { 
+                                $('#on').click(function(){ 
+                                                           $('#pause').hide();
+                                                           $('#on').hide();
+                                                         $('#playlist').show();
+                                                         //$('#audio-info').show();
+                                                         //$('#tracker').show();
+                                                         //$('#buttons').show();
+                                                         $('#inputdiv').show();
+                                                         
+                                                      })
+                            });
+
+
+                                /////shuru mein hidden hona chahiye naa
+    
+      function initAudio(element)
+       {       
+
+          var title, artist;
+          
+          title=element.getElementsByTagName('td')[0];                            /*value of first column*/          
+          artist=element.getElementsByTagName('td')[1];                           /*value of second column*/          
+          audio= new Audio('media/'+ title);
+
+
+          $(element).attr("class","active");///////////////gave id dynamically
+          if(!audio.currentTime)//////anysong is being played
+          {   audio.play();
+            $('.title').html(title);
+            $('.artist').html(artist);
+            timecheck();
+              $('#play').hide();
+                $('#pause').show();
+         }
+       }
+
+
+
+
+      ///progress////////////////////////////////////////
+        function timecheck(){   
+
+                              $('#prog').change(function()
+                                               {
+                                                audio.currentTime=(this.value*audio.duration)/100;
+                                                timeupdater();
+                                                });
+
+
+                            $(audio).bind('timeupdate', function()
+                                               {  
+
+                                                             timeupdater();
+                                                             movetimebar();
+                                               
+                                                 }
+                                               );
+
+                    
+                 
+                                              
+
+                  }
+
+    function timeupdater()
+    {   
+      if(audio.currentTime>0){
+                            
+                            $('#timeduration').html(audio.duration);
+                        $('#currenttime').html(audio.currentTime);
+                          /*
+
+                                                if(audio.currentTime>0)
+                                                  {
+                                                    
+                                                              var timedurationsec= Math.floor(audio.duration%60);
+                                  var timedurationmin= Math.floor((audio.duration-(sec*60))/60);
+                                  var currenttimesec= Math.floor(audio.currentTime%60);
+                                  var currenttimemin= Math.floor((audio.currentTime-(sec*60))/60);
+                                  if(timedurationsec<10){timedurationsec='0'+timedurationsec;}
+                                  if(timedurationmin<10){timedurationmin='0'+timedurationmin;}
+                                  if(currenttimesec)<10{currenttimesec='0'+currenttimesec;}
+                                  if(currenttimemin)<10{currenttimemin='0'+currenttimemin;}
+                                                $('#timeduration').html(timedurationmin+':'+timedurationsec);/////ye to fix hai for each song
+                                                $('#currenttime').html(currenttimemin+':'+currenttimesec);
+
+                                                           }
+                                                            
+                                            */
+                      
+                              }
+        }
+        
+        function movetimebar()
+                             {
+                              var value=(audio.currentTime/audio.duration)*100;
+                              $('#prog').val(value); 
+                             }
+
+
+//play
+
+       $(document).ready(function()
+                                  {
+                                     $('#play').click(function()
+                                  {
+                                      audio.play();
+                                      $('#play').hide();
+                                      $('#pause').show();
+                                      $('#stop').html('stop');
+
+                                  });
+                                    });
+      
+
+///pause
+
+
+            $(document).ready(function()
+                                  { 
+                                     $('#pause').click(function()
+                                 {
+                                      audio.pause();
+                                      $('#pause').hide()
+                                      $('#play').show();
+
+                                 });
+                                     
+                                    });
+
+///stop
+
+         $(document).ready(function()
+                                  { 
+                                  $('#stop').click(function()
+                                               {
+                                                  audio.pause();
+
+                                                  $('#pause').hide();
+                                                  $('#play').show();
+                                                  $('#stop').html('stopped');
+                                                
+                                                  audio.currentTime=0;
+                                                   $('#currenttime').html(audio.currentTime);
+                                                   var valuee=(audio.currentTime/audio.duration)*100;
+                                                               $('#prog').val(valuee); 
+                                               });
+                                     
+                                  });
+       
+
+///next
+
+          $(document).ready(function()
+                                  { 
+                                    $('#next').click(function()
+                                 {
+
+                                    audio.pause();
+                                    $('#pause').hide()
+                              $('#play').show();
+
+
+                                  var next=$('#playlist tr.active').next();////////////////////////////playlist id ke us li ko uthaao jiski
+                                  $('#playlist tr.active').attr("class","");///////////////gave id dynamically 
+                                  if(next.length==0)/////////////////////////////class active ho aur wo class active ka next sibling ho
+                                    next=$('#playlist tr:first');
+                                    initAudio(next);
+                                 });
+                                  
+                                     
+                                  });
+         
+
+///prev
+
+        $(document).ready(function()
+                                  { 
+                                     $('#prev').click(function()
+                                 {
+                                    audio.pause(); 
+                                    $('#pause').hide()
+                              $('#play').show();
+
+                                    var prev=$('#playlist tr.active').prev();//////////////////////prev and next work for only once
+                                    $('#playlist tr.active').attr("class","");///////////////gave id dynamically 
+
+                                    if(prev.length==0)
+                                    prev=$('#playlist tr:last-child');////////////////
+                                  initAudio(prev);
+
+                                 });
+                                  });
+
+        
+///volume/////////////////////////////////////////
+          $(document).ready(function()
+                                  { 
+                                    
+                                     $('#volume').change(function()
+                                   {
+                                       
+                                     audio.volume= (this.value)/10;
+
+                                 });
+                                  });
+
+
+
+
+
+
+
+//////////play song on click
+          $(document).ready(function()
+                                  { 
+                                      $('table tr').click(function () {        
+                                                                    if(audio)
+                                                                          {
+                                                                          if(audio.currentTime)
+                                                                            {
+                                                                              audio.pause();
+                                                                              $('table#playlist tr.active').attr("class","");
+                                                                              initAudio($(this));
+                                                                            }}
+                                                                      else
+                                                                       {
+                                                                        
+                                                                        initAudio($(this));
+
+
+                                                                       }
+  
+                                                                            });
+                                  });
+          
+
+
+    </script>
+</head>
+<body>
+<div id="container">
+      
+  <div id="audio-player">
+    
+    
+        <div id="audio-info">
+      <span class="artist">Artist</span> - <span class="title">Title</span>
+    </div><br>
+      <div id="tracker">
+      <div id="progressBar">
+        <span id="progress"><input id="prog" type="range" min='0' max='100' step='1' value="0"></span>
+      </div>
+      <span id="currenttime">00.00</span>/<span id="timeduration">00.00</span>
+    </div>
+    <br>
+
+        <div id="innercontainer">
+    <div id="switchbutton">
+    <button id="on">Switch ON</button>
+    </div>
+     <div id="buttons">
+     <span>
+          
+        <button id="prev">prev</button>
+          <button id="play">play</button>
+          <button id="pause">pause</button>
+          <button id="stop">stop</button>
+          <button id="next">next</button>
+                <br>
+          Volume:<br><input id="volume" type="range" min="0" max="10" value="10" step='1' />
+
+      </span>
+     </div><br>
+    
+     <br>
+     <div id="inputdiv">
+     <input type="text" id="myInput" onkeyup="searchsong()" placeholder="Search for names.." title="Type in a name">
+     </div>
+     <table id="playlist">
+  <!--  <tr class="header">
+      <th style="width:60%;">Name</th>
+      <th style="width:40%;">Country</th>
+    </tr>-->
+      <tr class=''>
+      <td status="" id="title">Darkhaast.mp3</td>
+      <td status="" id="artist">Arijit Singh</td>
+      </tr>
+      <tr class=''>
+      <td status="" id="title">Khamoshiyaan.mp3</td>
+      <td status="" id="artist">Arijit Singh</td>
+      </tr>
+      <tr class=''>
+      <td status="" id="title">Tum Hi Ho.mp3</td>
+      <td status="" id="artist">Arijit Singh</td>
+      </tr>
+      <tr class=''>
+      <td status="" id="title">Aayat.mp3</td>
+      <td status="" id="artist">Arijit Singh</td>
+      </tr>
+      <tr class=''>
+      <td status="" id="title">Raaz Ankhein teri.mp3</td>
+      <td status="" id="artist">Arijit Singh</td>
+      </tr>
+      <tr class=''>
+      <td status="" id="title">Dekh Lena.mp3</td>
+      <td status=""  id="artist">Arijit Singh</td>
+      </tr>
+      <tr class=''>
+      <td status="" id="title">Ishq Mubarak.mp3</td>
+      <td status="" id="artist">Arijit Singh</td>
+      </tr>
+      <tr class=''>
+      <td status="" id="title">Lo maan Liya.mp3</td>
+      <td status="" id="artist">Arijit Singh</td>
+      </tr>
+      <tr class=''>
+      <td status="" id="title">Sone Do.mp3</td>
+      <td status="" id="artist">Arijit Singh</td>
+      </tr>
+      <tr class=''>
+      <td status="" id="title">Hamdard.mp3</td>
+      <td status="" id="artist">Arijit Singh</td>
+      </tr>
+      <tr class=''>
+      <td status="" id="title">Teri Fariyad.mp3</td>
+      <td status="" id="artist">Jagjeet Singh</td>
+      </tr>
+                  
+
+    </table>
+   </div>
+  </div>
+
+</div>
+
+
+</body>
+</html>
