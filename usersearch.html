@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Usersearch</title>
+	<script src="js/jquery.js"></script>
+    <script type="text/javascript">
+
+ $(document).ready(function()
+    { 
+                                     
+    	$('#usersearch').click(function()
+    	{
+    		 
+               var ajaxRequest;  
+               var x=  $('#usersearchinput').val();
+               var queryString = "?usersearch=" +x;
+              
+
+               try {
+                
+                  ajaxRequest = new XMLHttpRequest();
+               }catch (e) {
+                  
+                  try {
+                     ajaxRequest = new ActiveXObject("Msxml2.XMLHTTP");
+                  }catch (e) {
+                     try{
+                        ajaxRequest = new ActiveXObject("Microsoft.XMLHTTP");
+                     }catch (e){
+                       
+                        alert("request not made!");
+                        return false;
+                     }
+                  }
+               }
+                ///////////////////////////////////////////////////yha POST lga kr dekho zara
+               
+               ajaxRequest.open("GET", "usersearch.php" + queryString, true);
+               ajaxRequest.send(null);
+
+               ajaxRequest.onreadystatechange = function()
+               {
+                  if(ajaxRequest.readyState == 4)
+                  {
+                     var ajaxDisplay = document.getElementById('ajaxDiv');
+
+                    //var ajaxDisplay = $('#ajaxDiv');
+                    ajaxDisplay.innerHTML = ajaxRequest.responseText;
+                    //ajaxDisplay.html(ajaxRequest.responseText);
+                     
+                  }
+               }
+               
+					
+
+              
+
+            
+    	}
+
+    		);
+    	});	
+    </script>
+</head>
+<body>
+<input type="text" id="usersearchinput">
+
+<button id="usersearch">Search</button>
+
+<div id="ajaxDiv"></div>
+</body>
+</html>
