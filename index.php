@@ -1,96 +1,439 @@
-<?php
-if (isset($_SESSION['admin'])) {
- 	# code...
- 	header("location:loginadmin.php");
- } 
-?>
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Entry</title>
-	 <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-	 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-</head>
+    <title>HTML5 Audio Player</title>
 
-<body>
-<a href="logoutadmin.php" style="float: right;">Sign Out</a>
-<?php 
-$name=$artist=$genre=$thumbnail=$album="";
-if($_SERVER["REQUEST_METHOD"]=="POST")
-{
-	if(isset($_POST['submit']))
-	{
-	$name=$_POST["Name"];
-	$nameTrimmed=trim($name);
-	$nameReplaced=str_replace(" ", "_", $nameTrimmed).".mp3";
-	$artist=$_POST["Artist"];
-	$artistTrimmed=trim($artist);
-	$artistReplaced=str_replace(" ", "_", $artistTrimmed);
-	$genre=$_POST["Genre"];
-	$genreTrimmed=trim($genre);
-	$genreReplaced=str_replace(" ", "_", $genreTrimmed);
-	$thumbnail=$_POST["Thumbnail"];
-	$thumbnailTrimmed=trim($thumbnail);
-	$thumbnailReplaced=str_replace(" ","_", $genreTrimmed).".jpg";
-	$album=$_POST["Album"];
-	$albumTrimmed=trim($album);
-	$albumReplaced=str_replace(" ","_", $albumTrimmed);
-    $conn=new mysqli("localhost","root","","musicplayer");
-    $sql="INSERT INTO songs(title,artist,genre,thumbnail,album)VALUES('$nameReplaced','$artistReplaced','$genreReplaced','$thumbnailReplaced','$albumReplaced')";
-   	$conn->query($sql);
-   }
+    <style type="text/css">
+      ul li{
+        cursor: pointer;
+      }
+      input
+      {
+          cursor: pointer;  
+      }
+      input
+      {
+          cursor: pointer;  
+      }
+    </style>
+    <?php
+    
+    include_once('createplay.php');
+    ?>
+
+    <script src="js/jquery.js"></script>
+    <script type="text/javascript">
+    function popupUploadForm()
+        {
+           var newWindow4 = window.open('/mylearning/mp3player/createplaylists.php', 'name4', 'height=500,width=600');
+        }
+    function popupUploadForm3(elem)
+       {  
+        var newWindow5 = window.open('/mylearning/mp3player/yourplaylist.php', 'name5', 'height=500,width=600');
+        }   
+
+        function popupUploadFormx()
+       {
+        var newWindow6 = window.open('/mylearning/mp3player/myrecommend.php', 'name6', 'height=500,width=600');
+        }
+    
+
+    var audio, prog;
+     function loadit(){             
+                                   //$('div#fade').hide();
+                                   //$('#pause').hide();
+                                   $('#playlist').show();
+                                   $('#audio-info').show();
+                                   $('#tracker').show();
+                                   $('#buttons').show();
+                                   //$('div#fade').slideUp();
+                                   ///not working without document.ready
+                                    $(document).ready(function()
+                                  { 
+                                    $('#pause').hide();
+                                    $('div#fade').slideUp();                                      
+                                  });
+
+
+                            }
+
+      window.onload= loadit();                         
+      function countdownloads()
+      {
+        if(!isset($_SESSION['user'])) header('login.php');
+        $dbc= mysqli_connect('localhost','root','','musicplayer');
+        $usersession= $_SESSION['user'];
+        $query= "SELECT * FROM usersong WHERE userid= '$usersession'";
+        $data= mysqli_query($dbc, $query);
+        $count= mysqli_num_rows($data);
+//echo $count;
+        return $count;
 }
+
+      function initAudio(element)
+       {    
+            var songname= element.attr('song');////is trah ke attrbute ke liye phle se koi syntax nai hai so element.attr krna pdhta hai
+          var artist=element.attr('artist');
+          var title=element.attr('song');
+                
+          audio= new Audio('media/'+ songname);
+          $(element).attr("class","active");///////////////gave id dynamically
+          setplay(element);
+          if(!audio.currentTime)//////anysong is being played
+          {   audio.play();
+            $('.title').html(title);
+            $('.artist').html(artist);
+            timecheck();
+
+              $('#play').hide();
+                $('#pause').show();
+         }
+       }
+
+
+       function setplay(element)
+        {
+          $(element).css({"font-size":"200%"});  
+        }
+     //////////////////////// sets appearance of song being played
+        function unsetplay(element)
+        {
+          $(element).css({"font-size":"100%"});  
+        }
+
+      ///progress////////////////////////////////////////
+        function timecheck(){   
+
+                              $('#prog').change(function()
+                                               {
+                                                audio.currentTime=(this.value*audio.duration)/100;
+                                                timeupdater();
+                                                });
+
+
+                            $(audio).bind('timeupdate', function()
+                                               {  
+
+                                                           
+                                                             movetimebar();
+                                                             timeupdater();
+
+                                                             if(audio.currentTime==audio.duration) 
+                                                              repeat();
+                                               
+                                               
+                                                 }
+                                               );
+
+                    
+                 
+                                              
+
+                  }
+           function repeat()
+                {   
+                  initAudio($('#playlist li.active'));
+                }
+
+
+    function timeupdater()
+    {   
+      if(audio.currentTime>0){
+                            
+                            $('#timeduration').html(audio.duration);
+                        $('#currenttime').html(audio.currentTime);
+                          /*
+
+                                                if(audio.currentTime>0)
+                                                  {
+                                                    
+                                                              var timedurationsec= Math.floor(audio.duration%60);
+                                  var timedurationmin= Math.floor((audio.duration-(sec*60))/60);
+                                  var currenttimesec= Math.floor(audio.currentTime%60);
+                                  var currenttimemin= Math.floor((audio.currentTime-(sec*60))/60);
+                                  if(timedurationsec<10){timedurationsec='0'+timedurationsec;}
+                                  if(timedurationmin<10){timedurationmin='0'+timedurationmin;}
+                                  if(currenttimesec)<10{currenttimesec='0'+currenttimesec;}
+                                  if(currenttimemin)<10{currenttimemin='0'+currenttimemin;}
+                                                $('#timeduration').html(timedurationmin+':'+timedurationsec);/////ye to fix hai for each song
+                                                $('#currenttime').html(currenttimemin+':'+currenttimesec);
+
+                                                           }
+                                                            
+                                            */
+                      
+                              }
+        }
+        
+        function movetimebar()
+                             {
+                              var value=(audio.currentTime/audio.duration)*100;
+                              $('#prog').val(value); 
+                             }
+
+
+//play
+
+       $(document).ready(function()
+                                  {
+                                     $('#play').click(function()
+                                  {   $('#stop').show();
+                                      audio.play();
+                                      $('#play').hide();
+                                      $('#pause').show();
+                                      $('#stop').html('stop');
+
+                                  });
+                                    });
+      
+
+///pause
+
+
+            $(document).ready(function()
+                                  { 
+                                     $('#pause').click(function()
+                                 {
+                                      audio.pause();
+                                      $('#pause').hide()
+                                      $('#play').show();
+
+                                 });
+                                     
+                                    });
+
+///stop
+
+         $(document).ready(function()
+                                  { 
+                                  $('#stop').click(function()
+                                               {
+                                                  audio.pause();
+
+                                                  $('#pause').hide();
+                                                  $('#play').show();
+                                                  //$('#stop').html('stopped');
+                                                   $('#stop').hide();
+                                                  audio.currentTime=0;
+                                                   $('#currenttime').html(audio.currentTime);
+                                                   var valuee=(audio.currentTime/audio.duration)*100;
+                                                               $('#prog').val(valuee); 
+                                               });
+                                     
+                                  });
+       
+
+///next
+
+          $(document).ready(function()
+                                  { 
+                                    $('#next').click(function()
+                                 {
+                                    $('#stop').show();
+                                    audio.pause();
+                                    $('#pause').hide()
+                              $('#play').show();
+
+                                     unsetplay('#playlist li.active');
+                                  var next=$('#playlist li.active').next();////////////////////////////playlist id ke us li ko uthaao jiski
+                                  $('#playlist li.active').attr("class","");///////////////gave id dynamically 
+                                  if(next.length==0)/////////////////////////////class active ho aur wo class active ka next sibling ho
+                                    next=$('#playlist li:first-child');
+                                    initAudio(next);
+                                 });
+                                  
+                                     
+                                  });
+         
+
+///prev
+
+        $(document).ready(function()
+                                  { 
+                                     $('#prev').click(function()
+                                 {$('#stop').show();
+                                    audio.pause(); 
+                                    $('#pause').hide()
+                              $('#play').show();
+                                     unsetplay('#playlist li.active');
+                                    var prev=$('#playlist li.active').prev();//////////////////////prev and next work for only once
+                                    $('#playlist li.active').attr("class","");///////////////gave id dynamically 
+
+                                    if(prev.length==0)
+                                    prev=$('#playlist li:last-child');
+                                  initAudio(prev);
+
+                                 });
+                                  });
+
+        
+///volume/////////////////////////////////////////
+          $(document).ready(function()
+                                  { 
+                                    
+                                     $('#volume').change(function()
+                                   {
+                                       
+                                     audio.volume= (this.value)/10;
+
+                                 });
+                                  });
+          $(document).ready(function()
+                                  { 
+                                      $('#playlist li').click(function () 
+                                      { 
+                                         $('div#fade').slideUp();
+                                        $(this).find('#fade').slideDown();
+                                        
+
+                               });
+                                  });
+          
+
+
+
+
+
+
+//////////play song on click
+          $(document).ready(function()
+                                  { 
+                                      $('#playlist li button#play').click(function () 
+                                      {if(audio)/////////////////if phle se kuch play ho rha hai to
+                                        {
+                                          if(audio.currentTime)
+                                          {   unsetplay('#playlist li.active');
+                                          audio.pause();
+                                          $('#playlist li.active').attr("class","");
+                                      }
+                                   }
+                                 
+                                 $('#stop').show();
+                                 //initAudio($(this).parent().eq(2));////////////////////////i want  (this-button#play) to be parameter of initAudio
+                                 initAudio($(this).closest('li'));
+                              });
+                                  });
+          
+
+
+    </script>
+</head>
+<body>
+
+
+<?php
+$dbc= mysqli_connect('localhost','root','','musicplayer');
+include_once('countdownloads.php');
+include_once('countplaylists.php');
+$qry= "SELECT * FROM songs";
+$res= mysqli_query($dbc,$qry);
+if(isset($_SESSION['user']))
+  {
+    $useridd= $_SESSION['user'];
+    $qry2= "SELECT * FROM user WHERE userid='$useridd'";
+    $res2= mysqli_query($dbc,$qry2);
+    $row2=mysqli_fetch_array($res2);
+  }
 ?>
-	<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post">
-		<div>Name :
-		<input type="name" name="Name" data-validation="required custom" data-validation-regexp="^([a-zA-Z ]*)$">.mp3<br>
-		</div><div>Artist :
-		<input type="name" name="Artist" data-validation="required custom" data-validation-regexp="^([a-zA-Z ]*)$"><br>
-		</div><div>Genre :
-		<input type="name" name="Genre" data-validation="required custom" data-validation-regexp="^([a-zA-Z ]*)$"><br>
-		</div><div>Thumbnail :
-		<input type="name" name="Thumbnail" data-validation="required custom" data-validation-regexp="^([a-zA-Z ]*)$">.jpg<br>
-		</div><div>Album Name :
-		<input type="name" name="Album" data-validation="required custom" data-validation-regexp="^([a-zA-Z ]*)$"><br>
-		</div><div>Submit
-		<input type="submit" name="submit" value="Submit"></div>
-	</form>
-	 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-form-validator/2.3.26/jquery.form-validator.min.js"></script>
-        <script>
-            $.validate({
-            	
-                lang: 'en'
-            });
+<div id= 'loginsignup'  style="float:right;">
+<?php
+if(!isset($_SESSION['user']))
+{
 
-            $("form").validate({
-                errorClass: "error-class",
-            });
+  ?>
+  <div id='login'><button id='loginbtn'><a href="login.php">Login</a></button></div>
+  <div id='signup'><button id='signupbtn'><a href="register.php">Signup</a></button></div>
+<?php
+}
+else
+{
+  ?>
+  <div><?php echo' Hi..!! '.$row2['username'].' '?></div>
 
-        </script>
-        <table class="table table-hover">
-    	<thead>
-      	<tr>
-        <th>Title</th>
-        <th>Artist</th>
-        <th>Album</th>
-        <th>Genre</th>
-      	</tr>
-    	</thead>
-    	<tbody>
-    	<?php 
-    	$conn=new mysqli("localhost","root","","musicplayer");
-    	$sql="SELECT * FROM songs";
-    	$result = $conn->query($sql);
-    	if ($result->num_rows > 0) {
-    		while($row = $result->fetch_assoc()) {
-        echo "<tr><td>".$row["title"]."</td><td>".$row["artist"]."</td><td>".$row["album"]."</td><td>".$row["genre"]."</td></tr>";
-    	}
-    	}
-    	?>
-    </tbody>
-  </table>
+  <?php echo '<div><a href="yourdownload.php">Downloads('.countdownloads().')</a></div>';?>
+   <div><input type="submit" value="Create Playlist" onclick="popupUploadForm()"/></div>
+   <div><button id="yourrecommendations" onclick="popupUploadFormx()">Recommendations</button></div>
+   <?php echo '<div><button id="yourplaylist" onclick="popupUploadForm3()">Playlist('.countplaylists().')</button></div>';?>
+   <div id='logout'><button id='logoutbtn'><a href="logout.php">Logout</a></button></div>
+<?php
+}
 
+?>
+</div>
+
+<div id="container">
+      
+  <div id="audio-player">
+    
+    
+        <div id="audio-info">
+      <span class="artist">Artist</span> - <span class="title">Title</span>
+    </div><br>
+      <div id="tracker">
+      <div id="progressBar">
+        <span id="progress"><input id="prog" type="range" min='0' max='100' step='1' value="0"></span>
+      </div>
+      <span id="currenttime">00.00</span>/<span id="timeduration">00.00</span>
+    </div>
+    <br>
+
+        <div id="innercontainer">
+    
+     <div id="buttons">
+     <span>
+          
+        <button id="prev">prev</button>
+          <button id="play">play</button>
+          <button id="pause">pause</button>
+          <button id="stop">stop</button>
+          <button id="next">next</button>
+                <br>
+          Volume:<br><input id="volume" type="range" min="0" max="10" value="10" step='1' />
+
+      </span>
+     </div><br>
+    
+     <br>
+
+    <?php   
+    echo '<ul id="playlist">';   
+    while($row= mysqli_fetch_array($res))
+    {
+        
+     echo'<li class="" song='.$row["title"].' artist='.$row["artist"].'>
+                                                                       <div id="detail">
+                                                                       <div id="name">'.$row["title"].'</div>
+                                                                       <div id="fade">
+                                                                       <button id="play">Play</button>';
+                                                                       
+                                                                       //echo $_SESSION['user'];
+                                                                             if(isset($_SESSION['user']))
+                                                                             {
+                                                                              echo'<button id="download">';
+                                                                              echo '<a style="text-decoration:none; color:black;" href="addsong.php?file='.$row["title"].'">Download</a>';
+                                                                              echo '</button>';
+                                                                             }
+                                                                            
+                                                                             else
+                                                                             {
+                                                                               echo '<button id= "download"><a style="text-decoration:none; color:black;" href="login.php">Login To Download</a></button>';
+
+                                                                             }
+                                                                          echo'   
+                                                                             </div>                     
+                                                                             </div>
+          </li>';
+    }
+    echo '</ul>';
+
+    ?>
+   </div>
+  </div>
+
+</div>
 </body>
 </html>
+
+
+
+
